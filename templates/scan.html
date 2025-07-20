@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan QR Code</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200vh;
+            font-family: Arial, sans-serif;
+        }
+        #reader {
+            width: 100%;
+            height: 100%;
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        #result {
+            font-size: 1.2em;
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h2>Scan Your QR Code</h2>
+    <div id="reader" style="width:300px;"></div>
+    <p id="result"></p>
+
+    <script>
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById("result").innerText = `Scanned: ${decodedText}`;
+            const urlParams = new URLSearchParams(decodedText.split('?')[1]);
+            const tableNo = urlParams.get("table");
+            if (tableNo == null) {
+                alert("Please scan a valid QR code.");
+                return;
+            }
+            else{
+                window.location.href = "/?table=" + encodeURIComponent(tableNo);
+            }
+        }
+
+        const html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 10, qrbox: 250 };
+        Html5Qrcode.getCameras().then(devices => {
+            if (devices && devices.length) {
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    onScanSuccess
+                );
+            }
+        }).catch(err => {
+            console.error("Camera error", err);
+        });
+    </script>
+</body>
+</html>
