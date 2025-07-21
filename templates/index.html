@@ -14,7 +14,7 @@
       <div class="container-fluid">
         <a class="navbar-brand logo" href="{{ url_for('index') }}">Mr.Foodie</a>
         <button class="navbar-toggler border-0 bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span><img src="{{ url_for('static', filename='foods/' + hot_deals[3].image) }}" alt="Menu" width="30" height="30"></span>
+            <span><img src="{{ url_for('static', filename='icon/fast-food.png') }}" alt="Menu" width="30" height="30"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
           <ul class="navbar-nav">
@@ -56,6 +56,7 @@
               <div class="col-md-4">
                 <div class="card mb-4">
                   <img src="{{ url_for('static', filename='foods/' + deal.image) }}" class="card-img-top" alt="{{ deal.title }}">
+                  <script>console.log("{{ deal.image }}");</script>
                   <div class="card-body">
                     <h5 class="card-title">{{ deal.title }}</h5>
                     <p class="card-text">{{ deal.description }}</p>
