@@ -1,120 +1,224 @@
 @import url('https://fonts.googleapis.com/css2?family=Satisfy&display=swap');
-*{
+
+/* Base Styles */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     color: #333;
+    line-height: 1.6;
 }
-.justify-content-end{
+
+/* Navigation */
+.navbar {
+    padding: 0.8rem 1rem;
+}
+
+.justify-content-end {
     padding-right: 40px;
 }
-.logo{
+
+.logo {
     font-family: "Satisfy", cursive;
     font-weight: 1000;
-    font-style: normal;
+    font-size: 1.8rem;
     background: linear-gradient(to right, #ff7e5f, #feb47b);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    transition: all 0.3s ease;
 }
+
 .logo:hover {
     background: linear-gradient(to right, #feb47b, #ff7e5f);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
-.navbar-toggler{
-   border: transparent;
+
+.navbar-toggler {
+    border: none;
+    padding: 0.25rem;
 }
-.nav-link{
+
+.nav-link {
     font-family: "Satisfy", cursive;
     font-weight: 400;
-    font-style: normal;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
 }
-.box{
-    padding: 20px 20px 0 20px;
-    margin-top: 20px;
-    width: 110%;
-    height: 60%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: #333 solid 1px;
+
+/* Header Section */
+.container-fluid {
+    padding: 0 15px;
+}
+
+.row-cols-2 {
+    margin: 0 -10px;
+}
+
+.box {
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #333;
     border-radius: 10px;
-    font-family: inherit;
     font-weight: bold;
-    font-size: x-small;
-    box-shadow: #333 0px 0px 3px;
+    font-size: 1rem;
+    box-shadow: 0 0 3px #333;
+    text-align: center;
 }
-.QR{
-    margin-top: 20px;
-    margin-left: 300px;
+
+.QR {
+    margin: 20px auto;
     width: 40px;
     height: 40px;
-    border: transparent;
-    background-color: transparent;
+    border: none;
+    background: transparent;
+    display: block;
 }
-.QR img{
+
+.QR img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
 }
-@media screen and (max-width: 768px) {
+
+/* Menu Sections */
+.hot-deals, .menuList {
+    padding: 30px 15px;
+}
+
+.hot-deals h2, .menuList h2 {
+    font-family: "Satisfy", cursive;
+    font-weight: 700;
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hot-deals h2 img, .menuList h2 img {
+    width: 30px;
+    height: 30px;
+    margin: 0 10px;
+}
+
+/* Cards */
+.row {
+    margin: 0 -10px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-6, .col-md-4 {
+    padding: 0 10px;
+    margin-bottom: 20px;
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.card-img-top {
+    height: 180px;
+    width: 100%;
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.card-text {
+    margin-bottom: 0;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Pagination */
+.pagination {
+    margin: 30px 0;
+}
+
+.page-item.active .page-link {
+    background-color: #ff7e5f;
+    border-color: #ff7e5f;
+}
+
+.page-link {
+    color: #ff7e5f;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767px) {
     .justify-content-end {
         padding-right: 20px;
     }
-    .box {
-        width: 150%;
-        margin-top: 10px;
-    }
-    .QR {
-        margin-top: 10px;
-        margin-left: 110px;
-        width: 40px;
-        height: 40px;
+    
+    .col-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
     }
     
-}
-@media (min-width: 570px) and (max-width: 1023px){
     .box {
-        width: 120%;
-        margin-top: 15px;
+        width: 100%;
+        margin: 15px 0;
     }
+    
     .QR {
-        margin-top: 15px;
-        margin-left: 200px;
-        width: 40px;
-        height: 40px;
+        margin: 15px auto;
     }
-  
-}
-.hot-deals{
-    padding: 20px 0;
-}
-.hot-deals h2{
-    text-align: center;
-    margin-bottom: 20px;
-    font-family: "Satisfy", cursive;
-    font-weight: 700;
-    color: #333;
-}
-.hot-deals h2 img {
-    width: 30px;
-    height: 30px;
-    vertical-align: middle;
-    margin-right: 10px;
-}
-.card{
-    border: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
-    width: 350px;
-    height: 400px;
-}
-.card:hover {
-    transform: scale(1.05);
+    
+    .hot-deals, .menuList {
+        padding: 20px 10px;
+    }
+    
+    .card-img-top {
+        height: 150px;
+    }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+    .col-md-4 {
+        flex: 0 0 33.333%;
+        max-width: 33.333%;
+    }
+    
+    .box {
+        width: 100%;
+    }
+}
 
+@media (min-width: 1024px) {
+    .col-md-4 {
+        flex: 0 0 33.333%;
+        max-width: 33.333%;
+    }
+    
+    .container-fluid {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+}
