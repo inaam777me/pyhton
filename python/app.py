@@ -1,11 +1,21 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
 from conn import get_db
 from flask_debugtoolbar import DebugToolbarExtension
+import uuid
+from datetime import timedelta
 
 app = Flask(__name__ , template_folder="../templates", static_folder="../static")
 app.debug = True
 app.config['SECRET_KEY'] = '135-991-309'
 toolbar = DebugToolbarExtension(app)
+app.permanent_session_lifetime = timedelta(days=7) 
+
+@app.before_request
+def before_request():
+    # Ensure session ID exists for all visitors
+    if 'session_id' not in session:
+        session['session_id'] = str(uuid.uuid4())
+        session.permanent = True
 
 @app.route('/')
 def index():
