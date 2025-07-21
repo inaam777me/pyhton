@@ -9,15 +9,26 @@ toolbar = DebugToolbarExtension(app)
 
 @app.route('/')
 def index():
-    hot_deals = []
     db = get_db()
-    sql = "SELECT * FROM MenuItems"
     cursor = db.cursor()
-    cursor.execute(sql)
-    hot_deals = cursor.fetchall()
-    print(hot_deals)
+    # Get only hot deals items
+    cursor.execute("SELECT * FROM MenuItems WHERE hotdeals = TRUE")
+    hot_deals_data = cursor.fetchall()
+    
+    # Convert tuples to list of dictionaries with proper keys
+    hot_deals = []
+    for item in hot_deals_data:
+        hot_deals.append({
+            'id': item[0],
+            'title': item[1],
+            'price': item[2],
+            'image': item[3],
+            'description': f"Rs. {item[2]:.2f}",  # Format price as currency
+            'is_hotdeal': item[4]
+        })
+    
+    print(hot_deals)  # For debugging
     return render_template('index.html', hot_deals=hot_deals)
-
 
 @app.route('/scan')
 def scan():
