@@ -49,7 +49,7 @@
 
     <div class="container-fluid">
       <div class="hot-deals">
-        <h2>Hot Deals</h2>
+        <h2><img src="{{url_for('static',  filename='icon/hot-sale.gif')}}" alt="">Hot Deals<img src="{{url_for('static',  filename='icon/hot-sale.gif')}}" alt=""></h2>
         {% for i in range(0, hot_deals|length, 3) %}
           <div class="row">
             {% for deal in hot_deals[i:i+3] %}
