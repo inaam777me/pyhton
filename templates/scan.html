@@ -35,6 +35,7 @@
         function onScanSuccess(decodedText, decodedResult) {
             document.getElementById("result").innerText = `Scanned: ${decodedText}`;
             const urlParams = new URLSearchParams(decodedText.split('?')[1]);
+            console.log(urlParams);
             const tableNo = urlParams.get("table");
             if (tableNo == null) {
                 alert("Please scan a valid QR code.");
