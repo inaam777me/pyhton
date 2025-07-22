@@ -12,7 +12,6 @@ app.permanent_session_lifetime = timedelta(days=7)
 
 @app.before_request
 def before_request():
-    # Ensure session ID exists for all visitors
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
         session.permanent = True
