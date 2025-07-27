@@ -222,3 +222,37 @@ body {
         margin: 0 auto;
     }
 }
+
+.add_to_cart {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.btn-sharp {
+    color: #ff7e5f !important;
+    border: solid 4px #ff7e5f !important;
+    border-radius: 50px !important;
+    padding: 4px 10px 5px 11px !important;
+}
+.btn-sharp:hover {
+    background-color: #ff7e5f !important;
+    color: white !important;
+}
+
+.select-btn {
+    border: 2px solid #007bff;
+    background-color: transparent;
+    color: #007bff;
+    transition: all 0.3s;
+  }
+
+  .select-btn.selected {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .hidden-checkbox {
+    display: none;
+  }

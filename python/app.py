@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, redirect, render_template, request, jsonify, session, url_for
 from conn import get_db
 from flask_debugtoolbar import DebugToolbarExtension
 import uuid
@@ -10,11 +10,14 @@ app.config['SECRET_KEY'] = '135-991-309'
 toolbar = DebugToolbarExtension(app)
 app.permanent_session_lifetime = timedelta(days=7) 
 
+
+
 @app.before_request
 def before_request():
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
         session.permanent = True
+
 
 @app.route('/')
 def index():
@@ -63,6 +66,26 @@ def format_menu_items(items):
 @app.route('/scan')
 def scan():
     return render_template("scan.html")
+
+@app.route('/add_selected_items', methods=['POST'])
+def add_selected_items():
+    selected_ids = request.form.getlist('selected_items')  
+
+    if 'cart' not in session:
+        session['cart'] = {}
+
+    cart = session['cart']
+
+    for item_id in selected_ids:
+        if item_id in cart:
+            cart[item_id] += 1
+        else:
+            cart[item_id] = 1
+
+    session['cart'] = cart  # Save the updated cart
+
+    return redirect(url_for('index'))  # Or render a cart page
+
 
 if __name__ == '__main__':
     app.run(debug=True)
