@@ -3,43 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Your Order - Mr.Foodie</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='orders.css') }}">
 </head>
 <body>
-    <div class="container mt-5">
-        <h2>Your Order</h2>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in cart_items %}
-                <tr>
-                    <td>{{ item.title }}</td>
-                    <td>Rs. {{ "%.2f"|format(item.price) }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>Rs. {{ "%.2f"|format(item.total) }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="3">Grand Total</th>
-                    <th>Rs. {{ "%.2f"|format(cart_items|sum(attribute='total')) }}</th>
-                </tr>
-            </tfoot>
-        </table>
-        
-        <div class="d-flex justify-content-between">
-            <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Menu</a>
-            <a href="#" class="btn btn-primary">Proceed to Checkout</a>
+    <div class="container mt-4">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-shopping-cart me-2"></i>Your Order</h2>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Menu
+            </a>
         </div>
+        
+        <!-- Cart Items -->
+        <div class="cart-items" id="cart-container">
+            {% if cart_items %}
+                {% for item in cart_items %}
+                <div class="cart-item-card" data-item-id="{{ item.id }}">
+                    <div class="cart-item-row">
+                        <img src="{{ url_for('static', filename='foods/' + item.image) }}" 
+                             alt="{{ item.title }}" 
+                             class="food-thumbnail">
+                        <div class="cart-item-details">
+                            <div class="cart-item-title">{{ item.title }}</div>
+                            <div class="cart-item-price" data-price="{{ item.price }}">Rs. {{ "%.2f"|format(item.price) }} each</div>
+                            <div class="cart-item-total">Rs. {{ "%.2f"|format(item.total) }}</div>
+                        </div>
+                    </div>
+                    <div class="cart-item-actions mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="quantity-control">
+                                <button class="btn btn-sm quantity-btn minus-btn" 
+                                        data-item-id="{{ item.id }}"
+                                        aria-label="Decrease quantity">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="quantity">{{ item.quantity }}</span>
+                                <button class="btn btn-sm quantity-btn plus-btn" 
+                                        data-item-id="{{ item.id }}"
+                                        aria-label="Increase quantity">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <button class="btn-remove" data-item-id="{{ item.id }}" title="Remove item">
+                                <i class="fas fa-trash-alt me-1"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div class="cart-summary-card" id="cart-summary">
+                    <div class="summary-row">
+                        <span>total (<span id="total-items">{{ cart_items|sum(attribute='quantity') }}</span> items):</span>
+                        <span>Rs. <span id="subtotal">{{ "%.2f"|format(cart_items|sum(attribute='total')) }}</span></span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4>Your cart is empty</h4>
+                    <p>Looks like you haven't added anything to your cart yet</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary mt-2">
+                        <i class="fas fa-utensils me-1"></i> Browse Menu
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        {% if cart_items %}
+        <div class="action-buttons">
+            <button class="btn-clear" id="clear-cart">
+                <i class="fas fa-trash me-1"></i> Clear Cart
+            </button>
+            <button class="btn btn-checkout" id="checkout-btn">
+                <i class="fas fa-credit-card me-1"></i> Checkout
+            </button>
+        </div>
+        {% endif %}
     </div>
+
+    <script src="{{ url_for('static', filename='scripts/orders.js') }}"></script>
 </body>
 </html>

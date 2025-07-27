@@ -1,4 +1,4 @@
-from flask import Flask, redirect, render_template, request, jsonify, session, url_for, flash
+from flask import Flask, json, redirect, render_template, request, jsonify, session, url_for, flash
 from conn import get_db
 from flask_debugtoolbar import DebugToolbarExtension
 import uuid
@@ -63,12 +63,23 @@ def update_cart():
 def add_selected_items():
     try:
         selected_ids = request.form.getlist('selected_items')
-        if not selected_ids:
-            flash('No items selected', 'warning')
+        quantities = request.form.getlist('quantities')
+        
+        if not selected_ids or len(selected_ids) != len(quantities):
+            flash('No valid items selected', 'warning')
             return redirect(url_for('index'))
         
-        for item_id in selected_ids:
-            session['cart'][item_id] = session['cart'].get(item_id, 0) + 1
+        # Clear the current cart
+        session['cart'] = {}
+        
+        # Add the new items
+        for item_id, quantity in zip(selected_ids, quantities):
+            try:
+                quantity = int(quantity)
+                if quantity > 0:
+                    session['cart'][item_id] = quantity
+            except ValueError:
+                continue
         
         session.modified = True
         flash('Items added to cart!', 'success')
@@ -83,6 +94,7 @@ def add_selected_items():
 def order():
     cart = session.get('cart', {})
     items = []
+    
     for item_id, quantity in cart.items():
         item = fetchData(f"SELECT * FROM MenuItems WHERE MenuItemID = {item_id}")[0]
         items.append({
@@ -90,10 +102,24 @@ def order():
             'title': item['title'],
             'price': item['price'],
             'quantity': quantity,
-            'total': item['price'] * quantity
+            'total': item['price'] * quantity,
+            'image': item['image']
         })
-    
-    return render_template('orders.html', cart_items=items)
+
+    # Prepare cart data for JavaScript
+    cart_js = {
+        str(item['id']): {
+            'quantity': item['quantity'],
+            'price': float(item['price']),
+            'title': item['title'],
+            'image': item['image']
+        }
+        for item in items
+    }
+
+    return render_template('orders.html', 
+                         cart_items=items,
+                         cart_js=json.dumps(cart_js))
 
 @app.route('/scan')
 def scan():
@@ -120,6 +146,118 @@ def format_menu_items(items):
         'description': f"Rs. {item[2]:.2f}",
         'is_hotdeal': item[4]
     } for item in items]
+
+
+
+# order route to handle the order page
+@app.route('/update_cart_item', methods=['POST'])
+def update_cart_item():
+    try:
+        data = request.get_json()
+        item_id = data.get('item_id')
+        change = data.get('change', 1)
+        
+        if not item_id:
+            return jsonify({'success': False, 'message': 'Invalid item ID'}), 400
+        
+        # Get current quantity
+        current_quantity = session['cart'].get(item_id, 0)
+        new_quantity = current_quantity + change
+        
+        if new_quantity <= 0:
+            # Remove item if quantity reaches 0
+            session['cart'].pop(item_id, None)
+        else:
+            # Update quantity
+            session['cart'][item_id] = new_quantity
+        
+        session.modified = True
+        
+        # Calculate new total for this item
+        item = fetchData(f"SELECT * FROM MenuItems WHERE MenuItemID = {item_id}")[0]
+        item_total = item['price'] * new_quantity
+        
+        # Calculate cart summary
+        cart_summary = calculate_cart_summary()
+        
+        return jsonify({
+            'success': True,
+            'quantity': new_quantity if new_quantity > 0 else 0,
+            'total': item_total,
+            'cart_summary': cart_summary
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error updating cart item: {str(e)}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@app.route('/remove_cart_item', methods=['POST'])
+def remove_cart_item():
+    try:
+        data = request.get_json()
+        item_id = data.get('item_id')
+        
+        if not item_id:
+            return jsonify({'success': False, 'message': 'Invalid item ID'}), 400
+        
+        session['cart'].pop(item_id, None)
+        session.modified = True
+        
+        # Calculate cart summary
+        cart_summary = calculate_cart_summary()
+        
+        return jsonify({
+            'success': True,
+            'cart_summary': cart_summary
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error removing cart item: {str(e)}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+@app.route('/clear_cart', methods=['POST'])
+def clear_cart():
+    try:
+        session['cart'] = {}
+        session.modified = True
+        return jsonify({'success': True})
+    except Exception as e:
+        app.logger.error(f"Error clearing cart: {str(e)}")
+        return jsonify({'success': False, 'message': 'Server error'}), 500
+
+def calculate_cart_summary():
+    cart_items = []
+    total_items = 0
+    subtotal = 0.0
+    
+    for item_id, quantity in session.get('cart', {}).items():
+        item = fetchData(f"SELECT * FROM MenuItems WHERE MenuItemID = {item_id}")[0]
+        item_total = item['price'] * quantity
+        cart_items.append({
+            'id': item_id,
+            'title': item['title'],
+            'price': item['price'],
+            'quantity': quantity,
+            'total': item_total
+        })
+        total_items += quantity
+        subtotal += item_total
+    
+    # Calculate taxes and fees (example values)
+    service_charge = 0.0
+    tax = subtotal * 0.1  # 10% tax example
+    grand_total = subtotal + service_charge + tax
+    
+    return {
+        'subtotal': subtotal,
+        'service_charge': service_charge,
+        'tax': tax,
+        'grand_total': grand_total,
+        'total_items': total_items
+    }
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

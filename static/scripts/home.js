@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Set table number display
   document.getElementById("table-No").textContent = tableNo ? `Inside, ${tableNo}` : "Take a Way";
   
-  // Initialize cart
-  window.cart = JSON.parse(localStorage.getItem('cart')) || {};
+  // Initialize cart from sessionStorage
+  window.cart = JSON.parse(sessionStorage.getItem('cart')) || {};
 
   // Update UI with cart data
   updateCartUI();
@@ -28,36 +28,71 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Form submission
+  // Form submission handler
   document.querySelector('form').addEventListener('submit', function(e) {
+    // Prepare form data with only items that have quantity > 0
+    prepareFormData();
+    
+    // Check if cart is empty
     if (Object.keys(cart).length === 0) {
       e.preventDefault();
       alert('Please select at least one item');
+      return;
     }
   });
 
-  // Cart functions
-  function updateCart(itemId, change) {
-    fetch('/update_cart', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
-      },
-      body: JSON.stringify({ item_id: itemId, change: change })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        if (data.quantity > 0) {
-          cart[itemId] = data.quantity;
-        } else {
-          delete cart[itemId];
-        }
-        localStorage.setItem('cart', JSON.stringify(cart));
-        updateCartUI();
+  // Prepare form data before submission
+  function prepareFormData() {
+    const form = document.querySelector('form');
+    const selectedItemsInputs = form.querySelectorAll('input[name="selected_items"]');
+    const quantitiesInputs = form.querySelectorAll('input[name="quantities"]');
+    
+    // Reset all inputs
+    selectedItemsInputs.forEach(input => {
+      input.disabled = true;
+    });
+    quantitiesInputs.forEach(input => {
+      input.disabled = true;
+    });
+    
+    // Add only items with quantity > 0
+    Object.entries(cart).forEach(([itemId, quantity]) => {
+      if (quantity > 0) {
+        const newItemInput = document.createElement('input');
+        newItemInput.type = 'hidden';
+        newItemInput.name = 'selected_items';
+        newItemInput.value = itemId;
+        form.appendChild(newItemInput);
+        
+        const newQuantityInput = document.createElement('input');
+        newQuantityInput.type = 'hidden';
+        newQuantityInput.name = 'quantities';
+        newQuantityInput.value = quantity;
+        form.appendChild(newQuantityInput);
       }
     });
+  }
+
+  // Cart functions
+  function updateCart(itemId, change) {
+    const currentQuantity = cart[itemId] || 0;
+    const newQuantity = currentQuantity + change;
+    
+    if (newQuantity < 0) return;
+    
+    cart[itemId] = newQuantity;
+    if (newQuantity === 0) {
+      delete cart[itemId];
+    }
+    
+    sessionStorage.setItem('cart', JSON.stringify(cart));
+    updateCartUI();
+    
+    // Update the hidden input fields
+    const quantityInput = document.querySelector(`.item-quantity-input[data-item-id="${itemId}"]`);
+    if (quantityInput) {
+      quantityInput.value = newQuantity;
+    }
   }
 
   function updateCartUI() {
@@ -67,12 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (el.classList.contains('item-quantity')) {
         const quantity = cart[itemId] || 0;
         el.textContent = quantity;
-        
-        // Find corresponding checkbox
-        const checkbox = document.querySelector(`.visible-checkbox[value="${itemId}"]`);
-        if (checkbox) {
-          checkbox.checked = quantity > 0;
-        }
       }
     });
 
