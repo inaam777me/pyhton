@@ -1,88 +1,85 @@
-const urlParams = new URLSearchParams(window.location.search);
-const tableNo = urlParams.get('table');
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize variables
+  const urlParams = new URLSearchParams(window.location.search);
+  const tableNo = urlParams.get('table');
+  const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+  
+  // Set table number display
+  document.getElementById("table-No").textContent = tableNo ? `Inside, ${tableNo}` : "Take a Way";
+  
+  // Initialize cart
+  window.cart = JSON.parse(localStorage.getItem('cart')) || {};
 
-if (tableNo === null || tableNo === "") {
-    document.getElementById("table-No").innerHTML = "Take a Way";
-} else {
-    document.getElementById("table-No").innerHTML = "Inside, " + tableNo;
-}
+  // Update UI with cart data
+  updateCartUI();
 
-let currentPage = 1;
-document.getElementById('loadMore').addEventListener('click', function() {
-    currentPage++;
-    fetch(`/regular-menu?page=${currentPage}`)
-        .then(response => response.json())
-        .then(data => {
-            if(data.items.length < 20) {
-                this.style.display = 'none';
-            }
-        });
-});
-
-// function addToCart(itemId) {
-//     fetch(`/add_to_cart/${itemId}`)
-//         .then(response => response.json())
-//         .then(data => {
-//             // Update cart count in the UI
-//             const cartCountElement = document.getElementById('cart-count');
-//             if (cartCountElement) {
-//                 cartCountElement.textContent = data.cart_total;
-//             }
-//             // Show a success message (optional)
-//             alert('Item added to cart!');
-//         })
-//         .catch(error => {
-//             console.error('Error:', error);
-//             alert('Failed to add item to cart');
-//         });
-// }
-
-// document.querySelectorAll('.card.selectable').forEach(card => {
-//     card.addEventListener('click', () => {
-//       card.classList.toggle('selected');
-//       const checkbox = card.querySelector('input[type="checkbox"]');
-//       checkbox.checked = !checkbox.checked;
-//       console.log(`Card with ID ${card.id} selected: ${checkbox.checked}`);
-//     });
-//   });
-
-
-document.addEventListener("DOMContentLoaded", function () {
-  const selectedItemIds = new Set();
-
-  // Get all select buttons
-  const buttons = document.querySelectorAll(".select-btn");
-
-  buttons.forEach(button => {
-    button.addEventListener("click", function () {
-      const itemId = this.getAttribute("data-item-id");
-      const checkbox = this.nextElementSibling;
-
-      // Toggle selection
-      if (selectedItemIds.has(itemId)) {
-        selectedItemIds.delete(itemId);
-        checkbox.checked = false;
-        this.classList.remove("btn-primary");
-        this.classList.add("btn-outline-secondary");
-        this.textContent = "Select";
-      } else {
-        selectedItemIds.add(itemId);
-        checkbox.checked = true;
-        this.classList.remove("btn-outline-secondary");
-        this.classList.add("btn-primary");
-        this.textContent = "Selected";
-      }
-
-      // Optional: call the processing function
-      processSelectedItems([...selectedItemIds]);
+  // Quantity button handlers
+  document.querySelectorAll('.plus-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.dataset.itemId;
+      updateCart(itemId, 1);
     });
   });
 
-  // Custom function to process selected items
-  window.processSelectedItems = function (items) {
-    console.log("Selected item IDs:", items);
+  document.querySelectorAll('.minus-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const itemId = this.dataset.itemId;
+      updateCart(itemId, -1);
+    });
+  });
 
-    // You can add custom logic here
-    // Example: send to server via fetch(), update UI, etc.
-  };
+  // Form submission
+  document.querySelector('form').addEventListener('submit', function(e) {
+    if (Object.keys(cart).length === 0) {
+      e.preventDefault();
+      alert('Please select at least one item');
+    }
+  });
+
+  // Cart functions
+  function updateCart(itemId, change) {
+    fetch('/update_cart', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({ item_id: itemId, change: change })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        if (data.quantity > 0) {
+          cart[itemId] = data.quantity;
+        } else {
+          delete cart[itemId];
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartUI();
+      }
+    });
+  }
+
+  function updateCartUI() {
+    // Update quantity displays
+    document.querySelectorAll('[data-item-id]').forEach(el => {
+      const itemId = el.dataset.itemId;
+      if (el.classList.contains('item-quantity')) {
+        const quantity = cart[itemId] || 0;
+        el.textContent = quantity;
+        
+        // Find corresponding checkbox
+        const checkbox = document.querySelector(`.visible-checkbox[value="${itemId}"]`);
+        if (checkbox) {
+          checkbox.checked = quantity > 0;
+        }
+      }
+    });
+
+    // Update cart badge
+    const totalItems = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+    const badge = document.querySelector('.quantity-badge');
+    badge.textContent = totalItems;
+    badge.style.display = totalItems > 0 ? 'flex' : 'none';
+  }
 });
