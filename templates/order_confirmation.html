@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation - Mr.Foodie</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='order_confirmation.css') }}">
+</head>
+<body>
+    <div class="container confirmation-container">
+        <div class="text-center mb-4">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h1>Order Confirmed!</h1>
+            <p class="lead">Thank you for your order</p>
+        </div>
+
+        <div class="card order-summary mb-4">
+            <div class="card-header">
+                <h3>Order #{{ order.OrderID }}</h3>
+                <small class="text-muted">Placed on {{ order.OrderTime.strftime('%B %d, %Y at %H:%M') }}</small>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Order Details</h5>
+                        <ul class="list-group mb-3">
+                            {% for item in order.Items %}
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ item.Quantity }} × {{ item.Name }}</span>
+                                <span>Rs. {{ "%.2f"|format(item.Price * item.Quantity) }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Order Status</h5>
+                        <div class="status-card">
+                            <div class="status-progress">
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                         role="progressbar" 
+                                         style="width: '{{ progress_percentage }}%'"
+                                         aria-valuenow="{{ progress_percentage }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
+                                <div class="status-steps">
+                                    <div class="step {{ 'active' if order_status.CheffStatus != 'Pending' else '' }}">
+                                        <i class="fas fa-utensils"></i>
+                                        <span>Preparing</span>
+                                    </div>
+                                    <div class="step {{ 'active' if order_status.CheffStatus == 'Completed' else '' }}">
+                                        <i class="fas fa-check"></i>
+                                        <span>Ready</span>
+                                    </div>
+                                    <div class="step {{ 'active' if order_status.CompletionStatus == 'Delivered' else '' }}">
+                                        <i class="fas fa-concierge-bell"></i>
+                                        <span>Served</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="status-info mt-3">
+                                <div class="info-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Estimated wait time: <strong>{{ remaining_time }} minutes</strong></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-table"></i>
+                                    <span>Table: <strong>{{ order.TableNumber or 'Takeaway' }}</strong></span>
+                                </div>
+                                <div class="info-item">
+                                    <i class="fas fa-receipt"></i>
+                                    <span>Total: <strong>Rs. {{ "%.2f"|format(order.TotalAmount) }}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                <i class="fas fa-utensils"></i> Back to Menu
+            </a>
+            <button id="refresh-btn" class="btn btn-outline-secondary">
+                <i class="fas fa-sync-alt"></i> Refresh Status
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-refresh every 30 seconds
+            let refreshInterval = setInterval(fetchOrderStatus, 30000);
+            
+            // Manual refresh button
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                fetchOrderStatus();
+            });
+            
+            function fetchOrderStatus() {
+                fetch(`/order_status/{{ order.OrderID }}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update progress bar
+                            const progressBar = document.querySelector('.progress-bar');
+                            progressBar.style.width = `${data.progress_percentage}%`;
+                            progressBar.setAttribute('aria-valuenow', data.progress_percentage);
+                            
+                            // Update status steps
+                            document.querySelectorAll('.status-steps .step').forEach((step, index) => {
+                                if (index < data.step) {
+                                    step.classList.add('active');
+                                } else {
+                                    step.classList.remove('active');
+                                }
+                            });
+                            
+                            // Update remaining time
+                            document.querySelector('.info-item:nth-child(1) strong').textContent = 
+                                `${data.remaining_time} minutes`;
+                            
+                            // If order is completed, stop auto-refresh
+                            if (data.order_status.CompletionStatus === 'Delivered') {
+                                clearInterval(refreshInterval);
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching order status:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

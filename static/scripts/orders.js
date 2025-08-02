@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             let isLoading = false;
             
-            // Initialize cart from HTML data
             let cart = {};
             const cartItems = document.querySelectorAll('.cart-item-card');
             
@@ -18,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
             });
             
-            // Quantity adjustment handlers - using event delegation
             document.addEventListener('click', function(e) {
                 if (isLoading) return;
                 
@@ -34,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateQuantity(btn.dataset.itemId, -1);
                 }
                 
-                // Remove button
                 else if (e.target.closest('.btn-remove')) {
                     const btn = e.target.closest('.btn-remove');
                     if (confirm('Are you sure you want to remove this item from your cart?')) {
@@ -133,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Clear the cart object
                 cart = {};
                 
-                // Remove all items from UI with animation
                 const items = document.querySelectorAll('.cart-item-card');
                 items.forEach((item, index) => {
                     setTimeout(() => {
@@ -143,7 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, index * 100);
                 });
                 
-                // After all animations complete, show empty cart
                 setTimeout(() => {
                     showEmptyCart();
                 }, items.length * 100 + 300);
@@ -173,7 +168,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 let totalItems = 0;
                 let subtotal = 0;
                 
-                // Calculate totals
                 for (const itemId in cart) {
                     totalItems += cart[itemId].quantity;
                     subtotal += cart[itemId].total;
@@ -187,53 +181,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (subtotalElement) subtotalElement.textContent = subtotal.toFixed(2);
             }
             
-            function proceedToCheckout() {
-                setLoading(true);
-                
-                // Prepare order data
-                const orderItems = [];
-                for (const itemId in cart) {
-                    orderItems.push({
-                        id: itemId,
-                        quantity: cart[itemId].quantity,
-                        price: cart[itemId].price
-                    });
-                }
-                
-                const orderData = {
-                    items: orderItems,
-                    total: parseFloat(document.getElementById('subtotal').textContent)
-                };
-                
-                // Send to server
-                fetch('/submit_order', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrfToken
-                    },
-                    body: JSON.stringify(orderData)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Redirect to confirmation page
-                        window.location.href = '/order_confirmation?order_id=' + data.order_id;
-                    } else {
-                        alert(data.message || 'Failed to place order');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while placing your order');
-                })
-                .finally(() => {
-                    setLoading(false);
+           function proceedToCheckout() {
+            setLoading(true);
+            
+            // Prepare order data
+            const orderItems = [];
+            for (const itemId in cart) {
+                orderItems.push({
+                    id: itemId,
+                    quantity: cart[itemId].quantity,
+                    price: cart[itemId].price
                 });
             }
-        });
+            
+            const orderData = {
+                items: orderItems,
+                total: parseFloat(document.getElementById('subtotal').textContent),
+                tableNo: getTableNumber()
+            };
+            
+            // Send to server
+            fetch('/submit_order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    alert(data.message || 'Failed to place order');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while placing your order');
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+        }
+
+        function getTableNumber() {
+            // Implement this based on how you track table numbers
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('table') || 'Takeaway';
+        }
+});

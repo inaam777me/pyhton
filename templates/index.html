@@ -38,7 +38,7 @@
             </div>
             <div class="col-sm-6 col-md-4">
                <form action="{{ url_for('scan') }}" method="get">
-                  <button class="QR" type="submit">
+                  <button class="QR" type="button" data-bs-toggle="modal" data-bs-target="#qrModal">
                     <img src="{{ url_for('static', filename='icon/icons8-qrcode.gif') }}" alt="QR Code">
                   </button>
                 </form>

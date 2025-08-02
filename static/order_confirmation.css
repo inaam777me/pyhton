@@ -1,0 +1,93 @@
+.confirmation-container {
+    max-width: 900px;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+}
+
+.success-icon {
+    font-size: 4rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+.order-summary {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.status-card {
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+}
+
+.status-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 1.5rem 0 2rem;
+}
+
+.status-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #dee2e6;
+    z-index: 1;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 2;
+}
+
+.step i {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.step.active i {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.step span {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.step.active span {
+    color: #212529;
+    font-weight: 500;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.info-item i {
+    width: 24px;
+    text-align: center;
+    margin-right: 0.8rem;
+    color: #6c757d;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
